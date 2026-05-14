@@ -1,0 +1,25 @@
+{
+  "note_run_id_mismatch": "webhook run_id=gh-25858190296-1, stage_c.run_id=gh-25858119108-1. Using stage_c.run_id for consistency.",
+  "stage_c": {
+    "run_id": "gh-25858119108-1",
+    "start_time": "2026-05-14T11:43:37Z",
+    "end_time": "2026-05-14T11:44:14Z",
+    "duration_s": 36,
+    "llm_calls": 10,
+    "pages_created": 26,
+    "sources": 2,
+    "entities": 10,
+    "concepts": 14,
+    "comparisons": 0,
+    "prompt_tokens": 9667,
+    "completion_tokens": 6653,
+    "status": "success"
+  },
+  "stage_b": {
+    "run_id": "gh-25858119108-1",
+    "status": "success",
+    "processed_urls": ["https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents"],
+    "videos_processed": 1
+  },
+  "tg_summary": "[WEB-LINK] ✅ 一遍过\n\n📄 用于长期运行代理的有效工具框架\n🔗 https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents\n\n⏱️ 耗时：Stage C 36s\n🔢 Token：16,320（↑9,667 / ↓6,653）\n\n📊 知识图谱：\n  Source 2 / Entity 10 / Concept 14 / 总 26 页\n\n🟢 Entities：\n  · anthropic\n  · claude-agent-sdk\n  · claude-opus-4-5\n  · claude-sonnet-4-5\n  · claude\n  · git\n  · managed-agents\n  · mcp\n  · oauth\n  · puppeteer\n\n🟡 Concepts：\n  · 上下文修剪\n  · 上下文压缩\n  · 上下文焦虑\n  · 上下文重置\n  · 会话持久化\n  · 初始化代理\n  · 增量进展\n  · 宠物与牲畜架构模式\n  · 提示词注入\n  · 智能体编排器\n  · 沙盒环境\n  · 端到端测试\n  · 编码代理\n  · 长期运行代理\n\n🔗 入口：\n  · 用于长期运行代理的有效工具框架\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/用于长期运行代理的有效工具框架.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25858119108-1"
+}
