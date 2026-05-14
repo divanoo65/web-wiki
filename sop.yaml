@@ -1,5 +1,5 @@
 name: web-wiki
-version: "3.0"
+version: "3.1"
 wiki_local_path: /home/zhouhuijuan1987/wiki/web-wiki
 repo: divanoo65/web-wiki
 
@@ -14,14 +14,17 @@ terminal_paths:
   - logs/pipeline-runs/**
 
 pipeline:
-  # Stage 1: 内容变换（翻译/总结/提炼）
+  # Stage 1: 内容变换 — 只在新文件加入时触发（added_only），
+  # 避免 content-transform 自身的 commit（修改 web-links frontmatter）
+  # 重新触发自己，形成死循环
   - stage: content-transform
     trigger: raw/web-links/**
+    added_only: true
     webhook_route: sop-content-transform
     params:
       build_mode: transform
 
-  # Stage 2: wiki 构建
+  # Stage 2: wiki 构建 — web-transformed 新文件触发
   - stage: wiki-build
     trigger: raw/web-transformed/**
     webhook_route: sop-wiki-build
@@ -29,7 +32,7 @@ pipeline:
       build_mode: incremental
       source_dir: raw/web-transformed
 
-  # Stage 3: 独立 Evaluator（wiki-build 完成后评估质量）
+  # Stage 3: 独立 Evaluator
   - stage: wiki-evaluate
     trigger: wiki/**
     commit_message_guard: "stage-c done"
@@ -37,7 +40,7 @@ pipeline:
     params:
       build_mode: evaluate
 
-  # Stage 4: TG 汇总（Evaluator 完成后发送，含质量评分）
+  # Stage 4: TG 汇总
   - stage: tg-notify
     trigger: raw/pipeline-context.json
     commit_message_guard: "stage-evaluate done"
