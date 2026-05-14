@@ -1,10 +1,11 @@
 # YouTube Video Research Wiki
 Last updated: 2026-05-14
-Total pages: 8
+Total pages: 10
 
 ## Sources
 - [[用于长期运行代理的有效工具框架]]
 - [[扩展托管智能体-将大脑与双手解耦]]
+- [[用于长期运行应用程序开发的工具框架设计]]
 
 ## Entities
 - [[claude]]
@@ -17,6 +18,8 @@ Total pages: 8
 - [[anthropic]]
 - [[claude-agent-sdk]]
 - [[puppeteer]]
+- [[prithvi-rajasekaran]]
+- [[playwright]]
 
 ## Concepts
 - [[提示词注入]]
@@ -33,5 +36,12 @@ Total pages: 8
 - [[上下文修剪]]
 - [[上下文焦虑]]
 - [[长期运行代理]]
+- [[生成对抗网络]]
+- [[多代理结构]]
+- [[结构化制品]]
+- [[上下文窗口]]
+- [[生成器代理]]
+- [[规划代理]]
+- [[评估器代理]]
 
 ## Mindmaps
