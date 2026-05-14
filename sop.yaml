@@ -1,5 +1,5 @@
 name: web-wiki
-version: "1.0"
+version: "2.0"
 wiki_local_path: /home/zhouhuijuan1987/wiki/web-wiki
 repo: divanoo65/web-wiki
 
@@ -14,13 +14,22 @@ terminal_paths:
   - logs/pipeline-runs/**
 
 pipeline:
-  - stage: wiki-build
+  # Stage 1: 内容变换（翻译/总结/提炼）— 有 action frontmatter 时触发
+  - stage: content-transform
     trigger: raw/web-links/**
+    webhook_route: sop-content-transform
+    params:
+      build_mode: transform
+
+  # Stage 2: wiki 构建 — 读取变换后的文件
+  - stage: wiki-build
+    trigger: raw/web-transformed/**
     webhook_route: sop-wiki-build
     params:
       build_mode: incremental
-      source_dir: raw/web-links
+      source_dir: raw/web-transformed
 
+  # Stage 3: TG 汇总通知
   - stage: tg-notify
     trigger: index.md
     webhook_route: sop-tg-notify
