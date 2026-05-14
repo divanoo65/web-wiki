@@ -1,0 +1,24 @@
+{
+  "stage_b": {
+    "run_id": "gh-25852115678-1",
+    "status": "success",
+    "processed_urls": ["https://www.anthropic.com/engineering/managed-agents"],
+    "videos_processed": 1
+  },
+  "stage_c": {
+    "run_id": "gh-25852115678-1",
+    "start_time": "2026-05-14T09:17:49Z",
+    "end_time": "2026-05-14T09:18:48Z",
+    "duration_s": 59,
+    "llm_calls": 14,
+    "pages_created": 12,
+    "sources": 1,
+    "entities": 5,
+    "concepts": 6,
+    "comparisons": 0,
+    "prompt_tokens": 9157,
+    "completion_tokens": 11405,
+    "status": "success"
+  },
+  "tg_summary": "[WEB-LINK] ✅ 一遍过\n\n📄 Scaling Managed Agents: Decoupling the brain from the hands\n🔗 https://www.anthropic.com/engineering/managed-agents\n\n⏱️ 耗时：Stage C 59s\n🔢 Token：20,562（↑9,157 / ↓11,405）\n\n📊 知识图谱：\n  Source 1 / Entity 5 / Concept 6 / 总 12 页\n\n🟢 Entities：\n  · anthropic\n  · claude\n  · claude-opus-4-5\n  · claude-sonnet-4-5\n  · managed-agents\n\n🟡 Concepts：\n  · 上下文焦虑\n  · 会话持久化\n  · 宠物与牲畜架构模式\n  · 提示词注入\n  · 智能体编排器\n  · 沙盒环境\n\n🔗 入口：\n  · 扩展托管智能体：将大脑与双手解耦\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/扩展托管智能体-将大脑与双手解耦.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25852115678-1"
+}
