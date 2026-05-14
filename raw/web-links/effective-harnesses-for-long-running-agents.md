@@ -1,3 +1,8 @@
+---
+action: translate
+source_url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+---
+
 # Effective harnesses for long-running agents
 
 **来源**: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
