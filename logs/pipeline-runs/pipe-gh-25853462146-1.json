@@ -1,0 +1,24 @@
+{
+  "stage_b": {
+    "run_id": "gh-25853394040-1",
+    "status": "success",
+    "processed_urls": ["https://www.anthropic.com/engineering/managed-agents"],
+    "videos_processed": 1
+  },
+  "stage_c": {
+    "run_id": "gh-25853394040-1",
+    "start_time": "2026-05-14T09:47:51Z",
+    "end_time": "2026-05-14T09:48:30Z",
+    "duration_s": 39,
+    "llm_calls": 9,
+    "pages_created": 18,
+    "sources": 1,
+    "entities": 8,
+    "concepts": 9,
+    "comparisons": 0,
+    "prompt_tokens": 9017,
+    "completion_tokens": 7482,
+    "status": "success"
+  },
+  "tg_summary": "[WEB-LINK] ✅\n\n📄 扩展托管智能体：将大脑与双手解耦\n🔗 https://www.anthropic.com/engineering/managed-agents\n\n⏱️ 耗时：Stage C 39s\n🔢 Token：16,499（↑9,017 / ↓7,482）\n\n📊 知识图谱：\n  Source 1 / Entity 8 / Concept 9 / 总 18 页\n\n🟢 Entities：\n  · Claude\n  · Claude Sonnet 4.5\n  · Git\n  · Claude Opus 4.5\n  · MCP\n  · Managed Agents\n  · OAuth\n  · Anthropic\n\n🟡 Concepts：\n  · 提示词注入\n  · 宠物与牲畜架构模式\n  · 沙盒环境\n  · 上下文重置\n  · 智能体编排器\n  · 会话持久化\n  · 上下文压缩\n  · 上下文修剪\n  · 上下文焦虑\n\n🔗 入口：\n  · 扩展托管智能体：将大脑与双手解耦\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/%E6%89%A9%E5%B1%95%E6%89%98%E7%AE%A1%E6%99%BA%E8%83%BD%E4%BD%93-%E5%B0%86%E5%A4%A7%E8%84%91%E4%B8%8E%E5%8F%8C%E6%89%8B%E8%A7%A3%E8%80%A6.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25853462146-1"
+}
