@@ -1,49 +1,60 @@
-# 扩展托管智能体：将大脑与双手解耦
+---
+action: translate
+source_url: https://www.anthropic.com/engineering/managed-agents
+---
+
+# Scaling Managed Agents: Decoupling the brain from the hands
 
 **来源**: https://www.anthropic.com/engineering/managed-agents
 
-**摘要**: Anthropic 是一家致力于构建可靠、可解释且可控的 AI 系统的 AI 安全与研究公司。
+**摘要**: Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.
 
 ---
 
-请按照我们的文档开始使用 Claude 托管智能体（Claude Managed Agents）。工程博客中一个持续讨论的话题是如何构建高效的智能体，以及如何为长期运行的任务设计工作框架（harness）。这些工作中的一个共同点是：框架中编码了关于“Claude 无法独立完成什么”的假设。然而，这些假设需要经常受到质疑，因为随着模型的改进，它们可能会过时。
+Get started with Claude Managed Agents by following our docs.A running topic on the Engineering Blog is how to build effective agents and design harnesses for long-running work. A common thread across this work is that harnesses encode assumptions about what Claude can’t do on its own. However, those assumptions need to be frequently questioned because they can go stale as models improve.
 
-举个例子，在之前的工作中，我们发现 Claude Sonnet 4.5 在感知到上下文限制即将达到时会过早地结束任务——这种行为有时被称为“上下文焦虑”。我们通过在框架中添加上下文重置（context resets）来解决这个问题。但当我们对 Claude Opus 4.5 使用相同的框架时，发现这种行为已经消失了。这些重置变成了多余的负担。
+As just one example, in prior work we found that Claude Sonnet 4.5 would wrap up tasks prematurely as it sensed its context limit approaching—a behavior sometimes called “context anxiety.” We addressed this by adding context resets to the harness. But when we used the same harness on Claude Opus 4.5, we found that the behavior was gone. The resets had become dead weight.
 
-我们预计框架将持续演进。因此，我们构建了托管智能体：这是 Claude 平台中的一项托管服务，它通过一组旨在超越任何特定实现（包括我们今天运行的实现）的接口，代表您运行长周期的智能体。
+We expect harnesses to continue evolving. So we built Managed Agents: a hosted service in the Claude Platform that runs long-horizon agents on your behalf through a small set of interfaces meant to outlast any particular implementation—including the ones we run today.
 
-构建托管智能体意味着解决计算领域的一个古老问题：如何为“尚未构想出的程序”设计系统。几十年前，操作系统通过将硬件虚拟化为抽象概念（如进程、文件）来解决这个问题，这些抽象概念对于当时尚不存在的程序来说足够通用。这些抽象概念的寿命比硬件更长。`read()` 命令并不关心它访问的是 1970 年代的磁盘包还是现代的固态硬盘。底层的实现可以自由变更，而上层的抽象保持稳定。
+Building Managed Agents meant solving an old problem in computing: how to design a system for “programs as yet unthought of.” Decades ago, operating systems solved this problem by virtualizing hardware into abstractions—process, file—general enough for programs that didn't exist yet. The abstractions outlasted the hardware. The read() command is agnostic as to whether it’s accessing a disk pack from the 1970s or a modern SSD. The abstractions on top stayed stable while the implementations underneath changed freely.
 
-托管智能体遵循同样的模式。我们将智能体的组件进行了虚拟化：会话（session，所有发生事件的仅追加日志）、框架（harness，调用 Claude 并将 Claude 的工具调用路由到相关基础设施的循环）以及沙箱（sandbox，Claude 可以运行代码和编辑文件的执行环境）。这使得每个组件的实现都可以在不干扰其他组件的情况下进行替换。我们对这些接口的形式有明确的见解，但对它们背后运行的内容则保持中立。
+Managed Agents follow the same pattern. We virtualized the components of an agent: a session (the append-only log of everything that happened), a harness (the loop that calls Claude and routes Claude’s tool calls to the relevant infrastructure), and a sandbox (an execution environment where Claude can run code and edit files). This allows the implementation of each to be swapped without disturbing the others. We're opinionated about the shape of these interfaces, not about what runs behind them.
 
-## 不要把系统当宠物养
+ 
+## Don’t adopt a pet
 
-我们最初将所有智能体组件放入单个容器中，这意味着会话、智能体框架和沙箱共享同一个环境。这种方法有其好处，包括文件编辑是直接的系统调用，且无需设计服务边界。
+We started by placing all agent components into a single container, which meant the session, agent harness, and sandbox all shared an environment. There were benefits to this approach, including that file edits are direct syscalls, and there were no service boundaries to design.
 
-但通过将所有内容耦合到一个容器中，我们遇到了一个古老的架构问题：我们把系统当成了“宠物”。在“宠物与牲畜”（pets-vs-cattle）的类比中，宠物是需要精心照料、不可或缺的个体，而牲畜则是可互换的。在我们的案例中，服务器变成了宠物；如果容器崩溃，会话就会丢失。如果容器无响应，我们必须对其进行“护理”以使其恢复健康。
+But by coupling everything into one container, we ran into an old infrastructure problem: we’d adopted a pet. In the pets-vs-cattle analogy, a pet is a named, hand-tended individual you can’t afford to lose, while cattle are interchangeable. In our case, the server became that pet; if a container failed, the session was lost. If a container was unresponsive, we had to nurse it back to health.
 
-护理容器意味着要调试无响应的卡死会话。我们唯一的窗口是 WebSocket 事件流，但它无法告诉我们故障发生在哪里，这意味着框架中的错误、事件流中的丢包或容器离线，表现出来的现象都是一样的。为了找出问题所在，工程师必须在容器内打开一个 shell，但由于该容器通常也包含用户数据，这种方法本质上意味着我们缺乏调试能力。
+Nursing containers meant debugging unresponsive stuck sessions. Our only window in was the WebSocket event stream, but that couldn’t tell us where failures arose, which meant that a bug in the harness, a packet drop in the event stream, or a container going offline all presented the same. To figure out what went wrong, an engineer had to open a shell inside the container, but because that container often also held user data, that approach essentially meant we lacked the ability to debug.
 
-第二个问题是，框架假设 Claude 处理的任何内容都与它位于同一个容器中。当客户要求我们将 Claude 连接到他们的虚拟私有云时，他们要么必须将他们的网络与我们的网络对等，要么必须在他们自己的环境中运行我们的框架。当我们想要将框架连接到不同的基础设施时，硬编码在框架中的假设就成了问题。
+A second issue was that the harness assumed that whatever Claude worked on lived in the container with it. When customers asked us to connect Claude to their virtual private cloud, they had to either peer their network with ours, or run our harness in their own environment. An assumption baked into the harness became a problem when we wanted to connect it to different infrastructure.
 
-## 将大脑与双手解耦
+## Decouple the brain from the hands
 
-我们最终的解决方案是将我们认为的“大脑”（Claude 及其框架）与“双手”（执行动作的沙箱和工具）以及“会话”（会话事件日志）解耦。每一个都变成了一个对其他组件几乎没有假设的接口，并且每一个都可以独立失败或被替换。
+The solution we arrived at was to decouple what we thought of as the “brain” (Claude and its harness) from both the “hands” (sandboxes and tools that perform actions) and the “session” (the log of session events). Each became an interface that made few assumptions about the others, and each could fail or be replaced independently.
 
-**框架脱离了容器。** 将大脑与双手解耦意味着框架不再位于容器内。它调用容器的方式就像调用任何其他工具一样：`execute(name, input) → string`。容器变成了“牲畜”。如果容器死亡，框架会将故障捕获为工具调用错误，并将其传回给 Claude。如果 Claude 决定重试，可以使用标准配方重新初始化一个新容器：`provision({resources})`。我们不再需要护理故障容器使其恢复健康。
+The harness leaves the container. Decoupling the brain from the hands meant the harness no longer lived inside the container. It called the container the way it called any other tool: execute(name, input) → string. The container became cattle. If the container died, the harness caught the failure as a tool-call error and passed it back to Claude. If Claude decided to retry, a new container could be reinitialized with a standard recipe: provision({resources}). We no longer had to nurse failed containers back to health.
 
-**从框架故障中恢复。** 框架也变成了“牲畜”。由于会话日志位于框架之外，框架中没有任何内容需要在崩溃中幸存。当一个框架失败时，可以通过 `wake(sessionId)` 重启一个新的框架，使用 `getSession(id)` 取回事件日志，并从最后一个事件恢复。在智能体循环期间，框架会通过 `emitEvent(id, event)` 写入会话，以保持事件的持久记录。
+Recovering from harness failure. The harness also became cattle. Because the session log sits outside the harness, nothing in the harness needs to survive a crash. When one fails, a new one can be rebooted with wake(sessionId), use getSession(id) to get back the event log, and resume from the last event. During the agent loop, the harness writes to the session with emitEvent(id, event) in order to keep a durable record of events.
 
-**安全边界。** 在耦合设计中，Claude 生成的任何不受信任的代码都与凭据运行在同一个容器中——因此提示词注入（prompt injection）只需要说服 Claude 读取其自身的环境即可。一旦攻击者获得了这些令牌，他们就可以生成新的、不受限制的会话并将工作委托给它们。缩小作用域是一种显而易见的缓解措施，但这编码了一个关于 Claude 在有限令牌下无法做什么的假设——而 Claude 变得越来越聪明。结构上的修复是确保这些令牌在 Claude 生成代码运行的沙箱中永远不可访问。
+ 
 
-我们使用了两种模式来确保这一点。身份验证（Auth）可以与资源捆绑，或者保存在沙箱之外的保险库中。对于 Git，我们使用每个存储库的访问令牌在沙箱初始化期间克隆存储库，并将其连接到本地 git 远程仓库。Git 的 `push` 和 `pull` 操作在沙箱内部运行，而智能体本身无需处理令牌。对于自定义工具，我们支持 MCP 并将 OAuth 令牌存储在安全保险库中。Claude 通过专用代理调用 MCP 工具；该代理接收与会话关联的令牌。然后，代理可以从保险库中获取相应的凭据并调用外部服务。框架永远不会获知任何凭据。
+The security boundary. In the coupled design, any untrusted code that Claude generated was run in the same container as credentials—so a prompt injection only had to convince Claude to read its own environment. Once an attacker has those tokens, they can spawn fresh, unrestricted sessions and delegate work to them. Narrow scoping is an obvious mitigation, but this encodes an assumption about what Claude can't do with a limited token—and Claude is getting increasingly smart. The structural fix was to make sure the tokens are never reachable from the sandbox where Claude’s generated code runs.
 
-## 会话不是 Claude 的上下文窗口
+We used two patterns to ensure this. Auth can be bundled with a resource or held in a vault outside the sandbox. For Git, we use each repository’s access token to clone the repo during sandbox initialization and wire it into the local git remote. Git push and pull work from inside the sandbox without the agent ever handling the token itself. For custom tools, we support MCP and store OAuth tokens in a secure vault. Claude calls MCP tools via a dedicated proxy; this proxy takes in a token associated with the session. The proxy can then fetch the corresponding credentials from the vault and make the call to the external service. The harness is never made aware of any credentials.
 
-长周期任务通常会超过 Claude 的上下文窗口长度，而解决此问题的标准方法都涉及关于保留什么的不可逆决策。我们在之前关于上下文工程的工作中探索过这些技术。例如，压缩（compaction）让 Claude 可以保存其上下文窗口的摘要，而内存工具（memory tool）让 Claude 可以将上下文写入文件，从而实现跨会话学习。这可以与上下文修剪（context trimming）结合使用，选择性地删除旧的工具结果或思考块等令牌。
+## The session is not Claude’s context window
 
-但是，选择性保留或丢弃上下文的不可逆决策可能导致失败。很难知道未来的轮次需要哪些令牌。如果消息通过压缩步骤进行了转换，框架会从 Claude 的上下文窗口中删除压缩后的消息，只有在存储了这些消息的情况下才能恢复它们。之前的工作探索了通过将上下文存储为位于上下文窗口之外的对象来解决此问题的方法。例如，上下文可以是 REPL 中的一个对象，LLM 通过编写代码来过滤或切片它，从而以编程方式访问该对象。
+Long-horizon tasks often exceed the length of Claude’s context window, and the standard ways to address this all involve irreversible decisions about what to keep. We’ve explored these techniques in prior work on context engineering. For example, compaction lets Claude save a summary of its context window and the memory tool lets Claude write context to files, enabling learning across sessions. This can be paired with context trimming, which selectively removes tokens such as old tool results or thinking blocks.
 
-在托管智能体中，会话提供了同样的好处，充当了位于 Claude 上下文窗口之外的上下文对象。但上下文不是存储在沙箱或 REPL 中，而是持久地存储在会话日志中。接口 `getEvents()` 允许大脑通过选择事件流的位置切片来查询上下文。该接口可以灵活使用，允许大脑从上次停止读取的地方继续，在特定时刻之前回溯几个事件以查看前因，或者在特定操作之前重新读取上下文。
+But irreversible decisions to selectively retain or discard context can lead to failures. It is difficult to know which tokens the future turns will need. If messages are transformed by a compaction step, the harness removes compacted messages from Claude’s context window, and these are recoverable only if they are stored. Prior work has explored ways to address this by storing context as an object that lives outside the context window. For example, context can be an object in a REPL that the LLM programmatically accesses by writing code to filter or slice it.
 
-任何获取到的事件都可以……（内容已截断）
+ 
+In Managed Agents, the session provides this same benefit, serving as a context object that lives outside Claude’s context window. But rather than be stored within the sandbox or REPL, context is durably stored in the session log. The interface, getEvents(), allows the brain to interrogate context by selecting positional slices of the event stream. The interface can be used flexibly, allowing the brain to pick up from wherever it last stopped reading, rewinding a few events before a specific moment to see the lead up, or rereading context before a specific action.
+
+Any fetched events can 
+
+...[内容已截断]
