@@ -1,5 +1,4 @@
 ---
-action: translate
 source_url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
 ---
 
