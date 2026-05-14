@@ -1,0 +1,29 @@
+{
+  "pipeline_id": "gh-25858500916-1",
+  "stage_c": {
+    "run_id": "gh-25858500916-1",
+    "status": "success",
+    "start_time": "2026-05-14T11:52:00Z",
+    "end_time": "2026-05-14T11:58:30Z",
+    "duration_s": 390,
+    "pages_created": 10,
+    "sources_new": 1,
+    "entities_new": 2,
+    "concepts_new": 7,
+    "llm_calls": 37,
+    "prompt_tokens": 25000,
+    "completion_tokens": 22000,
+    "total_tokens": 47000,
+    "wiki_path": "/home/zhouhuijuan1987/wiki/web-wiki",
+    "repo": "divanoo65/web-wiki",
+    "commit_message_prefix": "stage-c done"
+  },
+  "stage_b": {
+    "run_id": "gh-25858500916-1",
+    "status": "success",
+    "processed_urls": ["https://www.anthropic.com/engineering/harness-design-long-running-apps"],
+    "videos_processed": 1
+  },
+  "source_dir": "raw/web-transformed",
+  "tg_summary": "[WEB-LINK] ✅ 一遍过\n\n📄 用于长期运行应用程序开发的工具框架设计\n🔗 https://www.anthropic.com/engineering/harness-design-long-running-apps\n\n⏱️ 耗时：Stage C 390s\n🔢 Token：47,000（↑25,000 / ↓22,000）\n\n📊 知识图谱：\n  Source 3 / Entity 12 / Concept 21 / 总 36 页\n\n🟢 Entities：\n  · anthropic\n  · claude-agent-sdk\n  · claude-opus-4-5\n  · claude-sonnet-4-5\n  · claude\n  · git\n  · managed-agents\n  · mcp\n  · oauth\n  · playwright\n  · prithvi-rajasekaran\n  · puppeteer\n\n🟡 Concepts：\n  · 上下文修剪\n  · 上下文压缩\n  · 上下文焦虑\n  · 上下文窗口\n  · 上下文重置\n  · 会话持久化\n  · 初始化代理\n  · 增量进展\n  · 多代理结构\n  · 宠物与牲畜架构模式\n  · 提示词注入\n  · 智能体编排器\n  · 沙盒环境\n  · 生成器代理\n  · 生成对抗网络\n  · 端到端测试\n  · 结构化制品\n  · 编码代理\n  · 规划代理\n  · 评估器代理\n  · 长期运行代理\n\n🔗 入口：\n  · 用于长期运行应用程序开发的工具框架设计\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/用于长期运行应用程序开发的工具框架设计.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25858500916-1"
+}
