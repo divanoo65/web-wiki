@@ -1,4 +1,18 @@
 {
+  "stage_b": {
+    "run_id": "gh-25896853204-1",
+    "status": "success",
+    "processed_urls": [
+      "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "https://www.anthropic.com/engineering/harness-design-long-running-apps"
+    ],
+    "videos_processed": 2,
+    "source_titles": [
+      "用于长期运行代理的有效工具框架",
+      "长周期应用开发的工具链（Harness）设计",
+      "长周期应用开发的测试框架设计"
+    ]
+  },
   "stage_c": {
     "run_id": "gh-25896853204-1",
     "start_time": "2026-05-15T02:27:35Z",
@@ -128,6 +142,16 @@
           "引用文件不存在: s",
           "引用文件不存在: i",
           "引用文件不存在: s",
+          "引用文件不存在: e",
+          "引用文件不存在: f",
+          "引用文件不存在: f",
+          "引用文件不存在: e",
+          "引用文件不存在: c",
+          "引用文件不存在: t",
+          "引用文件不存在: i",
+          "引用文件不存在: v",
+          "引用文件不存在: e",
+          "引用文件不存在: -",
           "引用文件不存在: h",
           "引用文件不存在: a",
           "引用文件不存在: r",
@@ -135,13 +159,12 @@
           "引用文件不存在: e",
           "引用文件不存在: s",
           "引用文件不存在: s",
-          "引用文件不存在: -",
-          "引用文件不存在: d",
           "引用文件不存在: e",
           "引用文件不存在: s",
-          "引用文件不存在: i",
-          "引用文件不存在: g",
-          "引用文件不存在: n",
+          "引用文件不存在: -",
+          "引用文件不存在: f",
+          "引用文件不存在: o",
+          "引用文件不存在: r",
           "引用文件不存在: -",
           "引用文件不存在: l",
           "引用文件不存在: o",
@@ -181,11 +204,11 @@
       },
       "low_chinese_pages": [],
       "semantic_issues": [
-        "术语不统一：两篇文档分别描述了不同的架构（初始化/编码代理 vs 规划/生成/评估代理），但未在页面内进行整合或说明，导致读者对“有效工具框架”的定义感到困惑。",
-        "内容截断：第二个文档的“核心要点”第5点在“规划器（”处戛然而止，存在明显的编辑遗漏。",
-        "时间线逻辑冲突：文档元数据中 created 时间分别为 2025-04-09 和 2026-05-15，跨度过大且缺乏上下文说明，容易让读者误以为是同一项目的不同阶段，但内容描述的架构差异巨大。",
-        "引用混乱：文中出现了 [[工具链设计]] 和 [[上下文工程]] 等双括号链接，但页面内并未提供对应的定义或跳转，属于典型的“孤岛式”Wiki 编写习惯。",
-        "语言风格不一致：第一部分偏向工程实践总结，第二部分偏向学术/架构分析，缺乏统一的语调。"
+        "\u201c术语不统一：两篇文档分别描述了不同的架构（初始化/编码代理 vs 规划/生成/评估代理），但未在页面内进行整合或说明，导致读者对\u2018有效工具框架\u2019的定义感到困惑。\u201d",
+        "\u201c内容截断：第二个文档的\u2018核心要点\u2019第5点在\u2018规划器（\u2019处戛然而止，存在明显的编辑遗漏。\u201d",
+        "\u201c时间线逻辑冲突：文档元数据中 created 时间分别为 2025-04-09 和 2026-05-15，跨度过大且缺乏上下文说明，容易让读者误以为是同一项目的不同阶段，但内容描述的架构差异巨大。\u201d",
+        "\u201c引用混乱：文中出现了 [[工具链设计]] 和 [[上下文工程]] 等双括号链接，但页面内并未提供对应的定义或跳转，属于典型的\u2018孤岛式\u2019Wiki 编写习惯。\u201d",
+        "\u201c语言风格不一致：第一部分偏向工程实践总结，第二部分偏向学术/架构分析，缺乏统一的语调。\u201d"
       ]
     },
     "handoff": {
@@ -197,5 +220,6 @@
         "eval_feedback": "页面内容详实但存在严重的逻辑断层与术语不一致，且作为 Wiki 页面，其元数据与正文的连贯性较差。"
       }
     }
-  }
+  },
+  "tg_summary": "[WEB-LINK] #gh-25896853204-1 ✅ 一遍过\n\n📄 两篇 Anthropic 研究文章\n🔗 https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents\n🔗 https://www.anthropic.com/engineering/harness-design-long-running-apps\n\n⏱️ 耗时：Stage C 261s\n🔢 Token：40,235（↑16,752 / ↓23,483）\n\n📊 知识图谱（累积）：\n  Source 6 / Entity 14 / Concept 26 / 总 45 页\n\n🟢 Entities：\n· anthropic\n· claude\n· claude-agent-sdk\n· claude-opus-4-5\n· claude-sonnet-3-5\n· claude-sonnet-4-5\n· git\n· harness\n· managed-agents\n· mcp\n· oauth\n· playwright\n· prithvi-rajasekaran\n· puppeteer\n\n🟡 Concepts：\n· 上下文修剪\n· 上下文压缩\n· 上下文工程\n· 上下文焦虑\n· 上下文窗口\n· 上下文重置\n· 会话持久化\n· 初始化代理\n· 增量进展\n· 多代理结构\n· 宠物与牲畜架构模式\n· 工具链设计\n· 提示词工程\n· 提示词注入\n· 智能体编排器\n· 沙盒环境\n· 测试框架设计\n· 生成器代理\n· 生成对抗网络\n· 端到端测试\n· 结构化制品\n· 编码代理\n· 自我评估\n· 规划代理\n· 评估器代理\n· 长期运行代理\n\n🔗 入口：\n  · 用于长期运行代理的有效工具框架\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/用于长期运行代理的有效工具框架.md\n  · 长周期应用开发的工具链（Harness）设计\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/长周期应用开发的工具链-Harness-设计.md\n  · 长周期应用开发的测试框架设计\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/长周期应用开发的测试框架设计.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25896853204-1\n  ⚠️ 质量评分 0.65（needs_review）：页面内容详实但存在严重的逻辑断层与术语不一致"
 }
