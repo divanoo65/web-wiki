@@ -1,17 +1,17 @@
 {
   "stage_c": {
-    "run_id": "gh-25861263975-1",
-    "start_time": "2026-05-14T12:58:12Z",
-    "end_time": "2026-05-14T12:58:33Z",
-    "duration_s": 21,
-    "llm_calls": 6,
-    "pages_created": 37,
-    "sources": 3,
-    "entities": 12,
-    "concepts": 22,
+    "run_id": "gh-25896853204-1",
+    "start_time": "2026-05-15T02:27:35Z",
+    "end_time": "2026-05-15T02:31:57Z",
+    "duration_s": 261,
+    "llm_calls": 12,
+    "pages_created": 46,
+    "sources": 6,
+    "entities": 14,
+    "concepts": 26,
     "comparisons": 0,
-    "prompt_tokens": 10074,
-    "completion_tokens": 4414,
+    "prompt_tokens": 16752,
+    "completion_tokens": 23483,
     "status": "success"
   }
 }
