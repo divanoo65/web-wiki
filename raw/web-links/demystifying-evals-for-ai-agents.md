@@ -1,5 +1,4 @@
 ---
-action: translate
 source_url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
 ---
 
