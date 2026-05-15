@@ -1,3 +1,8 @@
+---
+action: translate
+source_url: https://www.anthropic.com/engineering/harness-design-long-running-apps
+---
+
 # Harness design for long-running application development
 
 **来源**: https://www.anthropic.com/engineering/harness-design-long-running-apps
