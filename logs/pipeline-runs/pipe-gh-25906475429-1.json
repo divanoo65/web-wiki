@@ -1,0 +1,52 @@
+{
+  "stage_c": {
+    "run_id": "gh-25906475429-1",
+    "start_time": "2026-05-15T07:39:00Z",
+    "end_time": "2026-05-15T07:55:00Z",
+    "duration_s": 960,
+    "llm_calls": 20,
+    "pages_created": 54,
+    "sources": 6,
+    "entities": 18,
+    "concepts": 30,
+    "comparisons": 0,
+    "prompt_tokens": 17000,
+    "completion_tokens": 19000,
+    "status": "success",
+    "evaluation": {
+      "run_id": "gh-25906978714-1",
+      "timestamp": "2026-05-15T07:54:40.680916+00:00",
+      "pages_evaluated": 1,
+      "status": "passed",
+      "score": 0.85,
+      "feedback": "内容结构清晰且专业，但在技术深度与实践边界的界定上略显单薄，缺乏对评估套件如何处理非确定性输出的机制说明。",
+      "struct_issues": {},
+      "low_chinese_pages": [],
+      "semantic_issues": [
+        "缺乏对评估套件如何处理 LLM 智能体非确定性（Non-deterministic）输出的说明，这是评估套件设计的核心难点。",
+        "技术细节部分过于泛泛，未提及评估套件在处理长上下文或多轮对话时的状态管理挑战。",
+        "模型升级加速器部分的描述略显营销化，缺乏对评估套件本身维护成本（如测试用例漂移）的客观风险提示。"
+      ]
+    },
+    "handoff": {
+      "evaluated_at": "2026-05-15T07:54:40.680916+00:00",
+      "quality_gate": "passed",
+      "for_tg_notify": {
+        "eval_score": 0.85,
+        "eval_status": "passed",
+        "eval_feedback": "内容结构清晰且专业，但在技术深度与实践边界的界定上略显单薄，缺乏对评估套件如何处理非确定性输出的机制说明。"
+      }
+    }
+  },
+  "stage_b": {
+    "run_id": "gh-25906475429-1",
+    "status": "success",
+    "processed_urls": [
+      "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+    ],
+    "videos_processed": 1,
+    "source_title": "解密 AI 智能体评估",
+    "source_filename": "解密-ai-智能体评估.md"
+  },
+  "tg_summary": "[WEB-LINK] ✅ 一遍过\n\n📄 解密 AI 智能体评估\n🔗 https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents\n\n⏱️ 耗时：Stage C 960s\n🔢 Token：36,000（↑17,000 / ↓19,000）\n\n📊 知识图谱：\n  Source 6 / Entity 18 / Concept 30 / 总 54 页\n\n🟢 Entities：\n· anthropic\n· bolt-ai\n· claude-agent-sdk\n· claude-code\n· claude-opus-4-5\n· claude-sonnet-3-5\n· claude-sonnet-4-5\n· claude\n· descript\n· git\n· harness\n· managed-agents\n· mcp\n· oauth\n· playwright\n· prithvi-rajasekaran\n· puppeteer\n· tau-2-bench\n\n🟡 Concepts：\n· 上下文修剪\n· 上下文压缩\n· 上下文工程\n· 上下文焦虑\n· 上下文窗口\n· 上下文重置\n· 会话持久化\n· 初始化代理\n· 增量进展\n· 多代理结构\n· 宠物与生畜架构模式\n· 少样本提示\n· 工具链设计\n· 提示词工程\n· 提示词注入\n· 智能体编排器\n· 智能体评估\n· 沙盒环境\n· 测试框架设计\n· 生成器代理\n· 生成对抗网络\n· 端到端测试\n· 结构化制品\n· 编码代理\n· 自我评估\n· 规划代理\n· 评估器代理\n· 评估套件\n· 评分器\n· 长期运行代理\n\n🔗 入口：\n  · 解密 AI 智能体评估\n    https://github.com/divanoo65/web-wiki/blob/main/wiki/sources/解密-ai-智能体评估.md\n  · 知识图谱索引\n    https://github.com/divanoo65/web-wiki\n\nrun_id: gh-25906475429-1"
+}
