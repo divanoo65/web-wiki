@@ -1,57 +1,62 @@
-# 解密 AI 智能体评估（Evals）
+---
+source_url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+---
+
+# Demystifying evals for AI agents
 
 **来源**: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
 
-**摘要**: 解密 AI 智能体评估
+**摘要**: Demystifying evals for AI agents
 
 ---
 
-## 引言
+## Introduction
 
-良好的评估能帮助团队更自信地发布 AI 智能体。如果没有评估，团队很容易陷入被动循环——只有在生产环境中才能发现问题，而修复一个故障往往又会引发新的问题。评估能在问题影响用户之前将其显现出来，并能让行为变更变得可见，其价值会随着智能体的生命周期不断累积。
+Good evaluations help teams ship AI agents more confidently. Without them, it’s easy to get stuck in reactive loops—catching issues only in production, where fixing one failure creates others. Evals make problems and behavioral changes visible before they affect users, and their value compounds over the lifecycle of an agent.
 
-正如我们在《构建有效的智能体》（Building effective agents）中所述，智能体在多个回合中运行：调用工具、修改状态，并根据中间结果进行调整。正是这些使 AI 智能体变得有用的能力——自主性、智能性和灵活性——也使得它们更难被评估。
+As we described in Building effective agents, agents operate over many turns: calling tools, modifying state, and adapting based on intermediate results. These same capabilities that make AI agents useful—autonomy, intelligence, and flexibility—also make them harder to evaluate.
 
-通过我们的内部工作以及与处于智能体开发前沿的客户合作，我们学会了如何为智能体设计更严谨、更有用的评估方案。以下是在现实部署中，针对各种智能体架构和用例行之有效的方法。
+Through our internal work and with customers at the frontier of agent development, we’ve learned how to design more rigorous and useful evals for agents. Here's what's worked across a range of agent architectures and use cases in real-world deployment.
 
-## 评估的结构
+## The structure of an evaluation
 
-评估（“eval”）是对 AI 系统的测试：给 AI 一个输入，然后对其输出应用评分逻辑以衡量成功与否。在本文中，我们重点讨论可以在开发过程中无需真实用户参与即可运行的自动化评估。
+An evaluation (“eval”) is a test for an AI system: give an AI an input, then apply grading logic to its output to measure success. In this post, we focus on automated evals that can be run during development without real users.
 
-单回合评估很简单：一个提示词、一个响应和评分逻辑。对于早期的 LLM，单回合、非智能体式的评估是主要的评估方法。随着 AI 能力的提升，多回合评估变得越来越普遍。
-在简单的评估中，智能体处理一个提示词，评分器检查输出是否符合预期。对于更复杂的多回合评估，编码智能体接收工具、任务（本例中为构建一个 MCP 服务器）和环境，执行“智能体循环”（工具调用和推理），并利用实现更新环境。评分则使用单元测试来验证运行中的 MCP 服务器。
-智能体评估更为复杂。智能体在多个回合中使用工具，修改环境中的状态并随之调整——这意味着错误可能会传播和累积。前沿模型还能找到超越静态评估限制的创造性解决方案。例如，Opus 4.5 在解决一个关于预订机票的 𝜏2-bench 问题时，通过发现政策中的漏洞解决了问题。它在字面上“未通过”评估，但实际上为用户提出了更好的解决方案。
+Single-turn evaluations are straightforward: a prompt, a response, and grading logic. For earlier LLMs, single-turn, non-agentic evals were the main evaluation method. As AI capabilities have advanced, multi-turn evaluations have become increasingly common.
+ In a simple eval, an agent processes a prompt, and a grader checks if the output matches expectations. For a more complex multi-turn eval, a coding agent receives tools, a task (building an MCP server in this case), and an environment, executes an "agent loop" (tool calls and reasoning), and updates the environment with the implementation. Grading then uses unit tests to verify the working MCP server. 
+Agent evaluations are even more complex. Agents use tools across many turns, modifying state in the environment and adapting as they go—which means mistakes can propagate and compound. Frontier models can also find creative solutions that surpass the limits of static evals. For instance, Opus 4.5 solved a 𝜏2-bench problem about booking a flight by discovering a loophole in the policy. It “failed” the evaluation as written, but actually came up with a better solution for the user.
 
-在构建智能体评估时，我们使用以下定义：
-- **任务（Task，又称问题或测试用例）**：是一个具有明确输入和成功标准的单一测试。
-- **尝试（Trial）**：是对任务的每一次尝试。由于模型输出在不同运行之间存在差异，我们进行多次尝试以产生更一致的结果。
-- **评分器（Grader）**：是为智能体表现的某个方面打分的逻辑。一个任务可以有多个评分器，每个评分器包含多个断言（有时称为检查）。
-- **记录（Transcript，也称为追踪或轨迹）**：是尝试的完整记录，包括输出、工具调用、推理、中间结果以及任何其他交互。对于 Anthropic API，这是评估运行结束时的完整消息数组——包含所有对 API 的调用以及评估期间返回的所有响应。
-- **结果（Outcome）**：是尝试结束时环境中的最终状态。机票预订智能体在记录末尾可能会说“您的机票已预订”，但结果取决于环境的 SQL 数据库中是否确实存在预订记录。
-- **评估框架（Evaluation harness）**：是端到端运行评估的基础设施。它提供指令和工具、并发运行任务、记录所有步骤、对输出进行评分并汇总结果。
-- **智能体框架（Agent harness 或 scaffold）**：是使模型能够作为智能体运行的系统：它处理输入、编排工具调用并返回结果。当我们评估“一个智能体”时，我们评估的是框架和模型协同工作的效果。例如，Claude Code 是一个灵活的智能体框架，我们通过 Agent SDK 使用其核心原语来构建我们的长期运行智能体框架。
-- **评估套件（Evaluation suite）**：是旨在衡量特定能力或行为的任务集合。套件中的任务通常共享一个广泛的目标。例如，客户支持评估套件可能会测试退款、取消和升级处理。
+When building agent evaluations, we use the following definitions:
+ - A task (a.k.a problem or test case) is a single test with defined inputs and success criteria.
+- Each attempt at a task is a trial. Because model outputs vary between runs, we run multiple trials to produce more consistent results.
+- A grader is logic that scores some aspect of the agent’s performance. A task can have multiple graders, each containing multiple assertions (sometimes called checks).
+- A transcript (also called a trace or trajectory) is the complete record of a trial, including outputs, tool calls, reasoning, intermediate results, and any other interactions. For the Anthropic API, this is the full messages array at the end of an eval run - containing all the calls to the API and all of the returned responses during the evaluation.
+- The outcome is the final state in the environment at the end of the trial. A flight-booking agent might say “Your flight has been booked” at the end of the transcript, but the outcome is whether a reservation exists in the environment’s SQL database.
+- An evaluation harness is the infrastructure that runs evals end-to-end. It provides instructions and tools, runs tasks concurrently, records all the steps, grades outputs, and aggregates results.
+- An agent harness (or scaffold) is the system that enables a model to act as an agent: it processes inputs, orchestrates tool calls, and returns results. When we evaluate “an agent,” we’re evaluating the harness and the model working together. For example, Claude Code is a flexible agent harness, and we used its core primitives through the Agent SDK to build our long-running agent harness.
+- An evaluation suite is a collection of tasks designed to measure specific capabilities or behaviors. Tasks in a suite typically share a broad goal. For instance, a customer support eval suite might test refunds, cancellations, and escalations.
+ Components of evaluations for agents. 
 
-## 为什么要构建评估？
+## Why build evaluations?
 
-当团队刚开始构建智能体时，通过手动测试、内部试用（dogfooding）和直觉，往往能取得不错的进展。更严谨的评估甚至可能看起来像是减缓发布速度的额外负担。但在早期原型设计阶段之后，一旦智能体进入生产环境并开始扩展，不进行评估的构建方式就会开始失效。
+When teams first start building agents, they can get surprisingly far through a combination of manual testing, dogfooding, and intuition. More rigorous evaluation may even seem like overhead that slows down shipping. But after the early prototyping stages, once an agent is in production and has started scaling, building without evals starts to break down.
 
-崩溃点通常出现在用户反馈智能体在更新后表现变差时，此时团队只能“盲目飞行”，除了猜测和检查外别无他法。没有评估，调试就是被动的：等待投诉、手动复现、修复 Bug，并祈祷没有引入其他回归问题。团队无法区分真正的回归和噪声，无法在发布前针对数百个场景自动测试变更，也无法衡量改进效果。
+The breaking point often comes when users report the agent feels worse after changes, and the team is “flying blind” with no way to verify except to guess and check. Absent evals, debugging is reactive: wait for complaints, reproduce manually, fix the bug, and hope nothing else regressed. Teams can't distinguish real regressions from noise, automatically test changes against hundreds of scenarios before shipping, or measure improvements.
 
-我们多次见证了这种演变过程。例如，Claude Code 最初基于 Anthropic 员工和外部用户的反馈进行快速迭代。后来，我们增加了评估——首先是针对简洁性和文件编辑等狭窄领域，然后是针对过度工程（over-engineering）等更复杂的行为。这些评估有助于识别问题、指导改进并聚焦研究与产品的协作。结合生产监控、A/B 测试、用户研究等，评估为 Claude Code 在扩展过程中持续改进提供了信号。
+We’ve seen this progression play out many times. For instance, Claude Code started with fast iteration based on feedback from Anthropic employees and external users. Later, we added evals—first for narrow areas like concision and file edits, and then for more complex behaviors like over-engineering. These evals helped identify issues, guide improvements, and focus research-product collaborations. Combined with production monitoring, A/B tests, user research, and more, evals provide signals to continue improving Claude Code as it scales.
 
-在智能体生命周期的任何阶段编写评估都是有用的。在早期，评估迫使产品团队明确智能体的成功定义；而在后期，它们有助于保持一致的质量标准。
+Writing evals is useful at any stage in the agent lifecycle. Early on, evals force product teams to specify what success means for the agent, while later they help uphold a consistent quality bar.
 
-Descript 的智能体帮助用户编辑视频，因此他们围绕成功编辑工作流的三个维度构建了评估：不破坏内容、按要求执行、执行得好。他们从手动评分演变为使用由产品团队定义标准并定期进行人工校准的 LLM 评分器，现在定期运行两套独立的套件进行质量基准测试和回归测试。Bolt AI 团队在智能体已经得到广泛使用后才开始构建评估。在 3 个月内，他们构建了一个评估系统，该系统运行智能体并使用静态分析对输出进行评分，使用浏览器智能体测试应用程序，并聘请 LLM 裁判来评估指令遵循等行为。
+Descript’s agent helps users edit videos, so they built evals around three dimensions of a successful editing workflow: don’t break things, do what I asked, and do it well. They evolved from manual grading to LLM graders with criteria defined by the product team and periodic human calibration, and now regularly run two separate suites for quality benchmarking and regression testing. The Bolt AI team started building evals later, after they already had a widely used agent. In 3 months, they built an eval system that runs their agent and grades outputs with static analysis, uses browser agents to test apps, and employs LLM judges for behaviors like instruction following.
 
-有些团队在开发初期就创建评估；另一些团队则在规模化后，当评估成为改进智能体的瓶颈时才加入。评估在智能体开发初期特别有用，可以明确编码预期的行为。两名工程师阅读同一份初始规范，可能会对 AI 应如何处理边缘情况产生不同的解读。评估套件可以解决这种歧义。无论何时创建，评估都有助于加速开发。
+Some teams create evals at the start of development; others add them once at scale when evals become a bottleneck for improving the agent. Evals are especially useful at the start of agent development to explicitly encode expected behavior. Two engineers reading the same initial spec could come away with different interpretations on how the AI should handle edge cases. An eval suite resolves this ambiguity. Regardless of when they’re created, evals help accelerate development.
 
-评估还决定了你采用新模型的速度。当更强大的模型发布时，没有评估的团队面临数周的测试，而拥有评估的竞争对手可以迅速确定模型的优势、调整提示词并在几天内完成升级。
+Evals also shape how quickly you can adopt new models. When more powerful models come out, teams without evals face weeks of testing while competitors with evals can quickly determine the model’s strengths, tune their prompts, and upgrade in days.
 
-一旦有了评估，你就可以免费获得基准和回归测试：延迟、Token 使用量、单任务成本和错误率都可以在静态任务库中进行跟踪。评估还可以成为产品团队和研究团队之间最高带宽的沟通渠道，定义研究人员可以优化的指标。显然，评估除了跟踪回归和改进之外，还有广泛的好处。考虑到成本是预先可见的，而收益是后期积累的，其复合价值很容易被忽视。
+Once evals exist, you get baselines and regression tests for free: latency, token usage, cost per task, and error rates can be tracked on a static bank of tasks. Evals can also become the highest-bandwidth communication channel between product and research teams, defining metrics researchers can optimize against. Clearly, evals have wide-ranging benefits beyond tracking regressions and improvements. Their compounding value is easy to miss given that costs are visible upfront while benefits accumulate later.
 
-## 如何评估 AI 智能体
+## How to evaluate AI agents
 
-我们看到当今大规模部署的智能体有几种常见类型，包括编码智能体、研究智能体、计算机使用智能体和对话智能体。每种类型都可能部署在各种各样的行业中，但……
+We see several common types of agents deployed at scale today, including coding agents, research agents, computer use agents, and conversational agents. Each type may be deployed across a wide variety of industries, but t
 
 ...[内容已截断]

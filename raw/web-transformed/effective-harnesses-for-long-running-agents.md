@@ -1,44 +1,48 @@
-# 用于长期运行代理的有效工具框架
+---
+source_url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+---
+
+# Effective harnesses for long-running agents
 
 **来源**: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
 
-**摘要**: Anthropic 是一家人工智能安全与研究公司，致力于构建可靠、可解释且可控的 AI 系统。
+**摘要**: Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.
 
 ---
 
-随着 AI 代理（Agent）的能力不断增强，开发者越来越多地要求它们承担需要数小时甚至数天才能完成的复杂任务。然而，如何让代理在多个上下文窗口（context windows）之间保持持续的进展，仍然是一个悬而未决的问题。
+As AI agents become more capable, developers are increasingly asking them to take on complex tasks requiring work that spans hours, or even days. However, getting agents to make consistent progress across multiple context windows remains an open problem.
 
-长期运行代理的核心挑战在于，它们必须在离散的会话中工作，而每个新会话开始时，代理对之前发生的事情一无所知。想象一下一个由轮班工程师组成的软件项目，每位新来的工程师对上一班发生的事情毫无记忆。由于上下文窗口有限，且大多数复杂项目无法在单个窗口内完成，代理需要一种方法来弥合编码会话之间的鸿沟。
+The core challenge of long-running agents is that they must work in discrete sessions, and each new session begins with no memory of what came before. Imagine a software project staffed by engineers working in shifts, where each new engineer arrives with no memory of what happened on the previous shift. Because context windows are limited, and because most complex projects cannot be completed within a single window, agents need a way to bridge the gap between coding sessions.
 
-我们开发了一种双重解决方案，使 Claude Agent SDK 能够跨多个上下文窗口有效工作：一个在首次运行时设置环境的“初始化代理”，以及一个负责在每个会话中取得增量进展，同时为下一个会话留下清晰产物的“编码代理”。您可以在随附的快速入门指南中找到代码示例。
+We developed a two-fold solution to enable the Claude Agent SDK to work effectively across many context windows: an initializer agent that sets up the environment on the first run, and a coding agent that is tasked with making incremental progress in every session, while leaving clear artifacts for the next session. You can find code examples in the accompanying quickstart.
 
-## 长期运行代理的问题
+## The long-running agent problem
 
-Claude Agent SDK 是一个功能强大的通用代理框架，擅长编码以及其他需要模型使用工具来收集上下文、规划和执行的任务。它具备压缩（compaction）等上下文管理功能，使代理能够在不耗尽上下文窗口的情况下处理任务。理论上，在这种设置下，代理应该能够无限期地持续进行有用的工作。
+The Claude Agent SDK is a powerful, general-purpose agent harness adept at coding, as well as other tasks that require the model to use tools to gather context, plan, and execute. It has context management capabilities such as compaction, which enables an agent to work on a task without exhausting the context window. Theoretically, given this setup, it should be possible for an agent to continue to do useful work for an arbitrarily long time.
 
-然而，仅靠压缩是不够的。开箱即用时，即使是像 Opus 4.5 这样处于前沿的编码模型，如果仅给定一个高级提示词（例如“构建一个 claude.ai 的克隆版”），在 Claude Agent SDK 中跨多个上下文窗口循环运行，也无法构建出生产级的 Web 应用。
+However, compaction isn’t sufficient. Out of the box, even a frontier coding model like Opus 4.5 running on the Claude Agent SDK in a loop across multiple context windows will fall short of building a production-quality web app if it’s only given a high-level prompt, such as “build a clone of claude.ai.”
 
-Claude 的失败表现为两种模式。首先，代理倾向于一次性做太多事情——本质上是试图“一键完成”整个应用。这通常导致模型在实现过程中耗尽上下文，使得下一个会话开始时，功能只实现了一半且没有文档记录。随后，代理不得不猜测之前发生了什么，并花费大量时间试图让基础应用重新运行。即使使用了压缩功能，这种情况依然会发生，因为压缩并不总是能向下一个代理传递完全清晰的指令。
+Claude’s failures manifested in two patterns. First, the agent tended to try to do too much at once—essentially to attempt to one-shot the app. Often, this led to the model running out of context in the middle of its implementation, leaving the next session to start with a feature half-implemented and undocumented. The agent would then have to guess at what had happened, and spend substantial time trying to get the basic app working again. This happens even with compaction, which doesn’t always pass perfectly clear instructions to the next agent.
 
-第二种失败模式通常发生在项目后期。在构建了一些功能后，后续的代理实例环顾四周，看到已经取得了一些进展，便宣布工作完成。
+A second failure mode would often occur later in a project. After some features had already been built, a later agent instance would look around, see that progress had been made, and declare the job done.
 
-我们将这个问题分解为两个部分。首先，我们需要建立一个初始环境，为给定提示词所需的所有功能奠定基础，从而引导代理逐步、分功能地工作。其次，我们应该提示每个代理在实现目标的同时取得增量进展，并在会话结束时将环境保持在整洁状态。所谓的“整洁状态”是指适合合并到主分支的代码：没有重大错误，代码有序且文档齐全，通常情况下，开发者可以轻松开始新功能的开发，而无需先清理不相关的混乱。
+This decomposes the problem into two parts. First, we need to set up an initial environment that lays the foundation for all the features that a given prompt requires, which sets up the agent to work step-by-step and feature-by-feature. Second, we should prompt each agent to make incremental progress towards its goal while also leaving the environment in a clean state at the end of a session. By “clean state” we mean the kind of code that would be appropriate for merging to a main branch: there are no major bugs, the code is orderly and well-documented, and in general, a developer could easily begin work on a new feature without first having to clean up an unrelated mess.
 
-在内部实验中，我们通过两部分解决方案解决了这些问题：
- - **初始化代理**：第一个代理会话使用专门的提示词，要求模型设置初始环境：一个 `init.sh` 脚本、一个记录代理工作日志的 `claude-progress.txt` 文件，以及一个显示已添加文件的初始 git 提交。
- - **编码代理**：随后的每个会话都要求模型取得增量进展，然后留下结构化的更新。
+When experimenting internally, we addressed these problems using a two-part solution:
+ - Initializer agent: The very first agent session uses a specialized prompt that asks the model to set up the initial environment: an init.sh script, a claude-progress.txt file that keeps a log of what agents have done, and an initial git commit that shows what files were added.
+- Coding agent: Every subsequent session asks the model to make incremental progress, then leave structured updates.1
+ 
+The key insight here was finding a way for agents to quickly understand the state of work when starting with a fresh context window, which is accomplished with the claude-progress.txt file alongside the git history. Inspiration for these practices came from knowing what effective software engineers do every day.
 
-这里的关键洞察是找到一种方法，让代理在从全新的上下文窗口开始时能快速理解工作状态，这通过 `claude-progress.txt` 文件和 git 历史记录来实现。这些实践的灵感来源于我们对优秀软件工程师日常工作方式的了解。
+## Environment management
 
-## 环境管理
+In the updated Claude 4 prompting guide, we shared some best practices for multi-context window workflows, including a harness structure that uses “a different prompt for the very first context window.” This “different prompt” requests that the initializer agent set up the environment with all the necessary context that future coding agents will need to work effectively. Here, we provide a deeper dive on some of the key components of such an environment.
 
-在更新后的 Claude 4 提示词指南中，我们分享了一些多上下文窗口工作流的最佳实践，包括一种使用“为第一个上下文窗口使用不同提示词”的框架结构。这个“不同的提示词”要求初始化代理设置环境，并提供未来编码代理有效工作所需的所有必要上下文。在此，我们深入探讨此类环境的一些关键组件。
+### Feature list
 
-### 功能列表
+To address the problem of the agent one-shotting an app or prematurely considering the project complete, we prompted the initializer agent to write a comprehensive file of feature requirements expanding on the user’s initial prompt. In the claude.ai clone example, this meant over 200 features, such as “a user can open a new chat, type in a query, press enter, and see an AI response.” These features were all initially marked as “failing” so that later coding agents would have a clear outline of what full functionality looked like.
 
-为了解决代理试图“一键完成”应用或过早认为项目完成的问题，我们提示初始化代理编写一份全面的功能需求文件，以扩展用户的初始提示词。在 claude.ai 克隆版的例子中，这意味着超过 200 个功能，例如“用户可以打开新聊天、输入查询、按回车并看到 AI 响应”。这些功能最初都被标记为“失败”（failing），以便后续的编码代理能清晰地了解完整功能的样子。
-
-```json
+ 
 {
  "category": "functional",
  "description": "New chat button creates a fresh conversation",
@@ -51,32 +55,28 @@ Claude 的失败表现为两种模式。首先，代理倾向于一次性做太�
  ],
  "passes": false
  }
-```
+CopyWe prompt coding agents to edit this file only by changing the status of a passes field, and we use strongly-worded instructions like “It is unacceptable to remove or edit tests because this could lead to missing or buggy functionality.” After some experimentation, we landed on using JSON for this, as the model is less likely to inappropriately change or overwrite JSON files compared to Markdown files.
 
-我们提示编码代理仅通过更改 `passes` 字段的状态来编辑此文件，并使用措辞强硬的指令，例如“删除或编辑测试是不可接受的，因为这可能导致功能缺失或出现错误”。经过一些实验，我们最终决定使用 JSON 格式，因为与 Markdown 文件相比，模型不太可能不恰当地更改或覆盖 JSON 文件。
+### Incremental progress
 
-### 增量进展
+Given this initial environment scaffolding, the next iteration of the coding agent was then asked to work on only one feature at a time. This incremental approach turned out to be critical to addressing the agent’s tendency to do too much at once.
 
-有了这个初始环境脚手架，下一轮编码代理被要求一次只处理一个功能。这种增量方法对于解决代理一次性做太多事情的倾向至关重要。
+Once working incrementally, it’s still essential that the model leaves the environment in a clean state after making a code change. In our experiments, we found that the best way to elicit this behavior was to ask the model to commit its progress to git with descriptive commit messages and to write summaries of its progress in a progress file. This allowed the model to use git to revert bad code changes and recover working states of the code base.
 
-在进行增量工作时，模型在进行代码更改后将环境保持在整洁状态仍然至关重要。在我们的实验中，我们发现诱导这种行为的最佳方法是要求模型将进展提交到 git，并附带描述性的提交信息，并在进度文件中编写进展摘要。这允许模型使用 git 撤销糟糕的代码更改并恢复代码库的工作状态。
+These approaches also increased efficiency, as they eliminated the need for an agent to have to guess at what had happened and spend its time trying to get the basic app working again.
 
-这些方法也提高了效率，因为它们消除了代理猜测之前发生了什么并花费时间试图让基础应用重新运行的需要。
+### Testing
 
-### 测试
+One final major failure mode that we observed was Claude’s tendency to mark a feature as complete without proper testing. Absent explicit prompting, Claude tended to make code changes, and even do testing with unit tests or curl commands against a development server, but would fail recognize that the feature didn’t work end-to-end.
 
-我们观察到的最后一个主要失败模式是 Claude 倾向于在没有适当测试的情况下将功能标记为完成。在没有明确提示的情况下，Claude 倾向于进行代码更改，甚至使用单元测试或针对开发服务器的 curl 命令进行测试，但无法识别该功能在端到端层面并未生效。
+In the case of building a web app, Claude mostly did well at verifying features end-to-end once explicitly prompted to use browser automation tools and do all testing as a human user would.
+ Screenshots taken by Claude through the Puppeteer MCP server as it tested the claude.ai clone. 
+Providing Claude with these kinds of testing tools dramatically improved performance, as the agent was able to identify and fix bugs that weren’t obvious from the code alone.
 
-在构建 Web 应用的情况下，一旦明确提示使用浏览器自动化工具并像人类用户一样进行所有测试，Claude 在验证端到端功能方面表现良好。
+Some issues remain, like limitations to Claude’s vision and to browser automation tools making it difficult to identify every kind of bug. For example, Claude can’t see browser-native alert modals through the Puppeteer MCP, and features relying on these modals tended to be buggier as a result.
 
-*(此处应有图片：Claude 通过 Puppeteer MCP 服务器在测试 claude.ai 克隆版时拍摄的截图)*
+## Getting up to speed
 
-为 Claude 提供这些测试工具极大地提高了性能，因为代理能够识别并修复仅从代码中无法显现的错误。
-
-一些问题仍然存在，例如 Claude 的视觉能力和浏览器自动化工具的局限性，使得识别所有类型的错误变得困难。例如，Claude 无法通过 Puppeteer MCP 看到浏览器原生的警告模态框，因此依赖这些模态框的功能往往更容易出错。
-
-## 快速上手
-
-在完成上述所有准备工作后……
+With all of the above in place
 
 ...[内容已截断]
